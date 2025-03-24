@@ -23,8 +23,15 @@ dist/
 target/
 dist/
 
-# JetBrains IDE
-.idea/
+# IntelliJ
+.idea
+*.ipr
+*.iml
+*.iws
+
+# Gradle
+.gradle/
+build/
 
 # Unit test reports
 TEST*.xml
@@ -48,3 +55,11 @@ Thumbs.db
 *.mov
 *.wmv
 
+# Local environment
+.env
+
+# Plugin directory
+/.quarkus/cli/plugins/
+
+# TLS Certificates
+.certs/
