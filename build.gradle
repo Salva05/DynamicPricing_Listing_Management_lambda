@@ -12,9 +12,9 @@ dependencies {
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
     implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-amazon-services-bom:${quarkusPlatformVersion}")
     implementation 'io.quarkus:quarkus-rest'
+    implementation 'io.quarkus:quarkus-amazon-lambda'
     implementation 'io.quarkus:quarkus-hibernate-validator'
     implementation 'io.quarkus:quarkus-rest-jackson'
-    implementation 'io.quarkiverse.amazonservices:quarkus-amazon-lambda'
     implementation 'io.quarkiverse.amazonservices:quarkus-amazon-dynamodb'
     implementation 'io.quarkus:quarkus-arc'
     testImplementation 'io.quarkus:quarkus-junit5'
