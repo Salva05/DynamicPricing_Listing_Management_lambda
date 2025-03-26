@@ -9,13 +9,11 @@ import java.util.Map;
  * Represents the request payload for updating an existing listing.
  * <p>
  * This DTO includes only the fields that the client is allowed to modify.
+ * The unique identifier (listingId) is provided as
+ * a URL path parameter (e.g. PUT /listings/{listingId}).
  * </p>
  */
 public class UpdateListingRequest {
-
-    @NotEmpty(message = "Listing ID is required")
-    @JsonProperty(value = "listingId", required = true)
-    private String listingId;
 
     @JsonProperty("name")
     private String name;
@@ -25,14 +23,6 @@ public class UpdateListingRequest {
 
     @JsonCreator
     public UpdateListingRequest() {
-    }
-
-    public String getListingId() {
-        return listingId;
-    }
-
-    public void setListingId(String listingId) {
-        this.listingId = listingId;
     }
 
     public String getName() {
@@ -53,9 +43,8 @@ public class UpdateListingRequest {
 
     @Override
     public String toString() {
-        return "UpdateListingDTO{" +
-                "listingId='" + listingId + '\'' +
-                ", name='" + name + '\'' +
+        return "UpdateListingRequest{" +
+                "name='" + name + '\'' +
                 ", attributes=" + attributes +
                 '}';
     }
