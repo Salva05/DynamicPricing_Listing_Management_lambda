@@ -34,6 +34,13 @@ public class Listing {
     private String userId;
 
     /**
+     * Mnemonic name of the listing
+     */
+    @JsonProperty(value = "name", required = true)
+    @NotEmpty(message = "Name is required")
+    private String name;
+
+    /**
      * Timestamp when the listing was created.
      * <p>
      * This field is automatically set to the current time (in ISO-8601 format) when a new Listing is instantiated.
@@ -94,6 +101,24 @@ public class Listing {
      */
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    /**
+     * Returns the listing's name.
+     *
+     * @return the listing's name.
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Sets the listing's name.
+     *
+     * @param name the listing's name to set.
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
@@ -167,6 +192,7 @@ public class Listing {
         return "Listing{" +
                 "listingId='" + listingId + '\'' +
                 ", userId='" + userId + '\'' +
+                ", name='" + name + '\'' +
                 ", createdAt=" + createdAt +
                 ", completed=" + completed +
                 ", attributes=" + attributes +
