@@ -39,16 +39,13 @@ public class Listing {
      * This field is automatically set to the current time (in ISO-8601 format) when a new Listing is instantiated.
      * </p>
      */
-    @JsonProperty(value = "createdAt", access = JsonProperty.Access.READ_ONLY)
+    @JsonProperty(value = "createdAt")
     private Instant createdAt;
 
     /**
      * Indicates whether the AI price prediction has been completed.
-     * <p>
-     * This field is managed internally and is read-only from JSON input.
-     * </p>
      */
-    @JsonProperty(value = "completed", access = JsonProperty.Access.READ_ONLY)
+    @JsonProperty(value = "completed")
     private boolean completed = false;
 
     /**
