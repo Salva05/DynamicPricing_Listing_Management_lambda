@@ -36,7 +36,7 @@ public class DynamoDBListingMapper {
      * @param listing the {@link Listing} object to convert.
      * @return a {@code Map<String, AttributeValue>} representing the DynamoDB item.
      */
-    public static Map<String, AttributeValue> toDynamoDbItem(Listing listing) {
+    public Map<String, AttributeValue> toDynamoDbItem(Listing listing) {
         Map<String, AttributeValue> item = new HashMap<>();
         item.put("listingId", AttributeValue.builder().s(listing.getListingId()).build());
         item.put("userId", AttributeValue.builder().s(listing.getUserId()).build());
@@ -74,7 +74,7 @@ public class DynamoDBListingMapper {
      * @param item the DynamoDB item map to convert.
      * @return the corresponding {@link Listing} object.
      */
-    public static Listing fromDynamoDbItem(Map<String, AttributeValue> item) {
+    public Listing fromDynamoDbItem(Map<String, AttributeValue> item) {
         Listing listing = new Listing();
 
         // Required attributes
