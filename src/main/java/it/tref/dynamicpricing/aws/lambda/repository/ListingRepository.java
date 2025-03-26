@@ -12,4 +12,11 @@ public interface ListingRepository {
      * @param listing the listing to persist.
      */
     void save(Listing listing);
+
+    /**
+     * Updates an existing listing in the datastore.
+     *
+     * @param listing the listing with updated data.
+     */
+    void update(Listing listing);
 }

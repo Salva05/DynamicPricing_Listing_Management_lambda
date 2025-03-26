@@ -9,8 +9,11 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of ListingRepository using AWS DynamoDB configured client.
@@ -40,6 +43,20 @@ public class DynamoDBListingRepository implements ListingRepository {
     }
 
     /**
+     * Builds a composite key for a DynamoDB item using the provided listing ID and user ID.
+     *
+     * @param listingId the unique identifier for the listing.
+     * @param userId    the unique identifier for the user.
+     * @return a map representing the composite key with "listingId" and "userId" as keys.
+     */
+    private Map<String, AttributeValue> buildCompositeKey(String listingId, String userId) {
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put("listingId", AttributeValue.builder().s(listingId).build());
+        key.put("userId", AttributeValue.builder().s(userId).build());
+        return key;
+    }
+
+    /**
      * Persists the given Listing in DynamoDB.
      *
      * @param listing the listing to persist.
@@ -56,6 +73,46 @@ public class DynamoDBListingRepository implements ListingRepository {
             logger.info("Successfully persisted listing with ID: {}", listing.getListingId());
         } catch (Exception e) {
             logger.error("Error persisting listing with ID: {}. Error: {}", listing.getListingId(), e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    /**
+     * Updates an existing listing in DynamoDB using the UpdateItem API.
+     *
+     * @param listing the Listing object containing updated data. The listing must have a valid listingId and userId.
+     * @throws RuntimeException if the update operation fails.
+     */
+    @Override
+    public void update(Listing listing) {
+        Map<String, AttributeValue> key = buildCompositeKey(listing.getListingId(), listing.getUserId());
+        String updateExpression = "SET #name = :name, #attributes = :attributes";
+        Map<String, String> exprAttrNames = Map.of(
+                "#name", "name",
+                "#attributes", "attributes"
+        );
+        Map<String, AttributeValue> exprAttrValues = new HashMap<>();
+        exprAttrValues.put(":name", AttributeValue.builder().s(listing.getName()).build());         // Name binding
+        Map<String, AttributeValue> attributesMap = listing.getAttributes().entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> AttributeValue.builder().s(e.getValue().toString()).build()
+                ));
+        exprAttrValues.put(":attributes", AttributeValue.builder().m(attributesMap).build());       // Attributes binding
+
+        UpdateItemRequest request = UpdateItemRequest.builder()
+                .tableName(configService.getDynamoDbListingTableName())
+                .key(key)
+                .updateExpression(updateExpression)
+                .expressionAttributeNames(exprAttrNames)
+                .expressionAttributeValues(exprAttrValues)
+                .build();
+
+        try {
+            dynamoDbClient.updateItem(request);
+            logger.info("Updated listing with ID: {} for user: {}", listing.getListingId(), listing.getUserId());
+        } catch (Exception e) {
+            logger.error("Error updating listing with ID: {}. Error: {}", listing.getListingId(), e.getMessage(), e);
             throw e;
         }
     }
