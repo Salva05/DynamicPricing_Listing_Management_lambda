@@ -19,6 +19,12 @@ public class ConfigService {
     String dynamoDbRegion;
 
     /**
+     * The DynamoDB listing table name.
+     */
+    @ConfigProperty(name = "quarkus.dynamodb.listing.table.name")
+    String dynamoDbListingTableName;
+
+    /**
      * Returns the configured AWS region for DynamoDB.
      *
      * @return the AWS region as a {@link String}.
@@ -26,4 +32,15 @@ public class ConfigService {
     public String getDynamoDbRegion() {
         return dynamoDbRegion;
     }
+
+    /**
+     * Returns the DynamoDB listing table name.
+     *
+     * @return the DynamoDB listing table name.
+     */
+    public String getDynamoDbListingTableName() {
+        return dynamoDbListingTableName;
+    }
+
+
 }
