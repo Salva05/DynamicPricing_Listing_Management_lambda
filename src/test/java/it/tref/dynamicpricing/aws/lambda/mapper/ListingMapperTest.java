@@ -1,13 +1,19 @@
 package it.tref.dynamicpricing.aws.lambda.mapper;
 
+import io.quarkus.test.junit.QuarkusTest;
 import it.tref.dynamicpricing.aws.lambda.model.Listing;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.util.Map;
 
+@QuarkusTest
 public class ListingMapperTest {
+
+    @Inject
+    DynamoDBListingMapper dynamoDBListingMapper;
 
     @Test
     public void testToDynamoDbItemAndBack() {
@@ -20,10 +26,10 @@ public class ListingMapperTest {
         listing.addAttribute("price", "100");
 
         // Convert Listing to DynamoDB item map.
-        Map<String, AttributeValue> item = DynamoDBListingMapper.toDynamoDbItem(listing);
+        Map<String, AttributeValue> item = dynamoDBListingMapper.toDynamoDbItem(listing);
 
         // Convert back to Listing.
-        Listing convertedListing = DynamoDBListingMapper.fromDynamoDbItem(item);
+        Listing convertedListing = dynamoDBListingMapper.fromDynamoDbItem(item);
 
         // Assert that the fixed and dynamic properties match.
         Assertions.assertEquals(listing.getListingId(), convertedListing.getListingId());
