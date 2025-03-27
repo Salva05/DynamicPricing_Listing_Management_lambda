@@ -23,7 +23,7 @@ import software.amazon.awssdk.http.HttpStatusCode;
 @ApplicationScoped
 public class RetrieveListingHandler extends AbstractHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreateListingHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(RetrieveListingHandler.class);
 
     private final MapperService mapperService;
     private final ListingService listingService;

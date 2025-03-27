@@ -131,6 +131,12 @@ public class DynamoDBListingRepository implements ListingRepository {
         logger.info("Updated listing with ID: {} for user: {}", listing.getListingId(), listing.getUserId());
     }
 
+    /**
+     * Retrieves all listings associated with the specified user ID from DynamoDB using the Global Secondary Index (GSI).
+     *
+     * @param userId the unique identifier for the user.
+     * @return a list of Listing objects for the given user, or an empty list if no listings are found.
+     */
     @Override
     public List<Listing> findByUserId(String userId) {
         Map<String, AttributeValue> expressionAttributeValues = Map.of(
@@ -153,6 +159,12 @@ public class DynamoDBListingRepository implements ListingRepository {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Deletes a Listing from DynamoDB identified by its composite primary key.
+     *
+     * @param listingId the unique identifier for the listing.
+     * @param userId    the unique identifier for the user.
+     */
     @Override
     public void delete(String listingId, String userId) {
         Map<String, AttributeValue> key = buildCompositeKey(listingId, userId);

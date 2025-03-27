@@ -3,7 +3,6 @@ package it.tref.dynamicpricing.aws.lambda.handler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import it.tref.dynamicpricing.aws.lambda.aop.HandleErrors;
-import it.tref.dynamicpricing.aws.lambda.dto.GetListingResponse;
 import it.tref.dynamicpricing.aws.lambda.dto.ListListingsResponse;
 import it.tref.dynamicpricing.aws.lambda.mapper.MapperService;
 import it.tref.dynamicpricing.aws.lambda.model.Listing;
@@ -15,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * AWS Lambda handler for listing all listings associated with the authenticated user.
@@ -27,7 +25,7 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class ListListingHandler extends AbstractHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreateListingHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ListListingHandler.class);
 
     private final MapperService mapperService;
     private final ListingService listingService;
