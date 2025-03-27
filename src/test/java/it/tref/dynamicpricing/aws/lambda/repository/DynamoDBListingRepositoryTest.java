@@ -222,4 +222,39 @@ public class DynamoDBListingRepositoryTest {
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
+
+    @Test
+    public void testDeleteListingSuccess() {
+        String listingId = "testId";
+        String userId = "user@example.com";
+
+        when(configService.getDynamoDbListingTableName()).thenReturn("TestTable");
+
+        // Call the repository delete method.
+        listingRepository.delete(listingId, userId);
+
+        // Capture and verify the DeleteItemRequest.
+        ArgumentCaptor<DeleteItemRequest> captor = ArgumentCaptor.forClass(DeleteItemRequest.class);
+        verify(dynamoDbClient, times(1)).deleteItem(captor.capture());
+        DeleteItemRequest capturedRequest = captor.getValue();
+
+        assertEquals("TestTable", capturedRequest.tableName());
+        Map<String, AttributeValue> key = capturedRequest.key();
+        assertEquals(listingId, key.get("listingId").s());
+        assertEquals(userId, key.get("userId").s());
+    }
+
+    @Test
+    public void testDeleteListingDynamoDbError() {
+        String listingId = "testId";
+        String userId = "user@example.com";
+
+        when(configService.getDynamoDbListingTableName()).thenReturn("TestTable");
+        RuntimeException dynamoException = new RuntimeException("DynamoDB error");
+        when(dynamoDbClient.deleteItem(any(DeleteItemRequest.class))).thenThrow(dynamoException);
+
+        Exception thrown = assertThrows(RuntimeException.class, () ->
+                listingRepository.delete(listingId, userId));
+        assertEquals("DynamoDB error", thrown.getMessage());
+    }
 }
