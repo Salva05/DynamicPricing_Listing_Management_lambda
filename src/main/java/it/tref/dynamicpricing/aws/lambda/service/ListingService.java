@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -79,4 +80,33 @@ public class ListingService {
         listingRepository.update(existingListing);
         logger.info("Updated listing with ID: {} for user: {}", listingId, userId);
     }
+
+    /**
+     * Retrieves a single listing for the specified listingId and userId.
+     *
+     * @param listingId the identifier of the listing.
+     * @param userId    the identifier of the user.
+     * @return the Listing object.
+     * @throws IllegalArgumentException if no listing is found.
+     */
+    public Listing getListing(String listingId, String userId) {
+        Listing listing = listingRepository.findById(listingId, userId);
+        if (listing == null) {
+            throw new IllegalArgumentException(
+                    String.format("Listing not found for listingId %s and userId %s", listingId, userId)
+            );
+        }
+        return listing;
+    }
+
+    /**
+     * Retrieves all listings for the specified user.
+     *
+     * @param userId the unique identifier of the user.
+     * @return a list of Listing objects.
+     */
+    public List<Listing> listListings(String userId) {
+        return listingRepository.findByUserId(userId);
+    }
+
 }
