@@ -9,9 +9,7 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -160,4 +158,68 @@ public class DynamoDBListingRepositoryTest {
         assertNull(result);
     }
 
+    @Test
+    public void testFindByUserIdFound() {
+        // Prepare two dummy DynamoDB items.
+        Map<String, AttributeValue> item1 = new HashMap<>();
+        item1.put("listingId", AttributeValue.builder().s("listing-1").build());
+        item1.put("userId", AttributeValue.builder().s("user@example.com").build());
+        item1.put("name", AttributeValue.builder().s("Listing One").build());
+
+        Map<String, AttributeValue> item2 = new HashMap<>();
+        item2.put("listingId", AttributeValue.builder().s("listing-2").build());
+        item2.put("userId", AttributeValue.builder().s("user@example.com").build());
+        item2.put("name", AttributeValue.builder().s("Listing Two").build());
+
+        // Simulate QueryResponse with these two items.
+        QueryResponse queryResponse = QueryResponse.builder()
+                .items(Arrays.asList(item1, item2))
+                .count(2)
+                .build();
+
+        when(configService.getDynamoDbListingTableName()).thenReturn("TestTable");
+        when(dynamoDbClient.query(any(QueryRequest.class))).thenReturn(queryResponse);
+
+        // Simulate mapper conversion for both items.
+        Listing listing1 = new Listing();
+        listing1.setListingId("listing-1");
+        listing1.setUserId("user@example.com");
+        listing1.setName("Listing One");
+
+        Listing listing2 = new Listing();
+        listing2.setListingId("listing-2");
+        listing2.setUserId("user@example.com");
+        listing2.setName("Listing Two");
+
+        when(dynamoDBListingMapper.fromDynamoDbItem(item1)).thenReturn(listing1);
+        when(dynamoDBListingMapper.fromDynamoDbItem(item2)).thenReturn(listing2);
+
+        // Call findByUserId.
+        List<Listing> result = listingRepository.findByUserId("user@example.com");
+
+        // Verify that both listings are returned and correctly mapped.
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertEquals("Listing One", result.get(0).getName());
+        assertEquals("Listing Two", result.get(1).getName());
+    }
+
+    @Test
+    public void testFindByUserIdEmpty() {
+        // Simulate QueryResponse with no items.
+        QueryResponse queryResponse = QueryResponse.builder()
+                .items(Collections.emptyList())
+                .count(0)
+                .build();
+
+        when(configService.getDynamoDbListingTableName()).thenReturn("TestTable");
+        when(dynamoDbClient.query(any(QueryRequest.class))).thenReturn(queryResponse);
+
+        // Call findByUserId.
+        List<Listing> result = listingRepository.findByUserId("user@example.com");
+
+        // Verify that the result is an empty list.
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
 }
