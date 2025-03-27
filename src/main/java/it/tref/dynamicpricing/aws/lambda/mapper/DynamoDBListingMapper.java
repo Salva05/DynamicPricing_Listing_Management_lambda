@@ -42,6 +42,7 @@ public class DynamoDBListingMapper {
         item.put("userId", AttributeValue.builder().s(listing.getUserId()).build());
         item.put("createdAt", AttributeValue.builder().s(listing.getCreatedAt().toString()).build());
         item.put("completed", AttributeValue.builder().bool(listing.isCompleted()).build());
+        item.put("name", AttributeValue.builder().s(listing.getName()).build());
 
         // Nest dynamic attributes into the key "attributes" as strings
         if (!listing.getAttributes().isEmpty()) {
@@ -83,7 +84,7 @@ public class DynamoDBListingMapper {
 
         // ISO-8601 format required
         listing.setCreatedAt(Instant.parse(item.get("createdAt").s()));
-
+        listing.setName(item.get("name").s());
         listing.setCompleted(item.get("completed").bool());
 
         if (item.containsKey("attributes") && item.get("attributes").m() != null) {
