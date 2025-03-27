@@ -4,11 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import it.tref.dynamicpricing.aws.lambda.handler.CreateListingHandler;
-// import it.tref.dynamicpricing.aws.lambda.handler.DeleteListingHandler;
-import it.tref.dynamicpricing.aws.lambda.handler.ListListingHandler;
-import it.tref.dynamicpricing.aws.lambda.handler.RetrieveListingHandler;
-import it.tref.dynamicpricing.aws.lambda.handler.UpdateListingHandler;
+import it.tref.dynamicpricing.aws.lambda.handler.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
@@ -26,15 +22,13 @@ import java.util.Map;
  */
 public class ListingManagementLambda implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    // W.I.P.
-
     private static final Logger logger = LoggerFactory.getLogger(ListingManagementLambda.class);
 
     private final CreateListingHandler createListingHandler;
     private final UpdateListingHandler updateListingHandler;
-    // private final DeleteListingHandler deleteListingHandler;
     private final RetrieveListingHandler retrieveListingHandler;
     private final ListListingHandler listListingHandler;
+    private final DeleteListingHandler deleteListingHandler;
 
     /**
      * Constructs a new ListingManagementLambda with the given handlers.
@@ -47,10 +41,12 @@ public class ListingManagementLambda implements RequestHandler<APIGatewayProxyRe
     public ListingManagementLambda(CreateListingHandler createListingHandler,
                                    UpdateListingHandler updateListingHandler,
                                    RetrieveListingHandler retrieveListingHandler,
+                                   DeleteListingHandler deleteListingHandler,
                                    ListListingHandler listListingHandler) {
         this.createListingHandler = createListingHandler;
         this.updateListingHandler = updateListingHandler;
         this.retrieveListingHandler = retrieveListingHandler;
+        this.deleteListingHandler = deleteListingHandler;
         this.listListingHandler = listListingHandler;
     }
 
@@ -64,7 +60,6 @@ public class ListingManagementLambda implements RequestHandler<APIGatewayProxyRe
     @Override
     public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent input, Context context) {
         logger.info("Received request: {}", input);
-
         String method = input.getHttpMethod();
         logger.info("HTTP Method: {}", method);
 
@@ -73,15 +68,15 @@ public class ListingManagementLambda implements RequestHandler<APIGatewayProxyRe
                 return createListingHandler.handleEvent(input);
             case "PUT":
                 return updateListingHandler.handleEvent(input);
+            case "DELETE":
+                return deleteListingHandler.handleEvent(input);
             case "GET":
                 Map<String, String> pathParams = input.getPathParameters();
-                if (pathParams != null && ((Map<?, ?>) pathParams).containsKey("listingId")) {
-                    return retrieveListingHandler.handleEvent(input);   // RETRIEVE
+                if (pathParams != null && pathParams.containsKey("listingId")) {
+                    return retrieveListingHandler.handleEvent(input);
                 } else {
-                    return listListingHandler.handleEvent(input);       // LIST
+                    return listListingHandler.handleEvent(input);
                 }
-            // case "DELETE":
-                // return deleteListingHandler.handleEvent(input);
             default:
                 logger.warn("Unsupported HTTP method: {}", method);
                 return new APIGatewayProxyResponseEvent()

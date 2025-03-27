@@ -109,4 +109,21 @@ public class ListingService {
         return listingRepository.findByUserId(userId);
     }
 
+    /**
+     * Deletes a listing for the specified key (listingId and userId).
+     *
+     * @param listingId the identifier of the listing to be deleted.
+     * @param userId    the identifier of the user.
+     * @throws IllegalArgumentException if the listing is not found.
+     */
+    public void deleteListing(String listingId, String userId) {
+        Listing existing = listingRepository.findById(listingId, userId);
+        if (existing == null) {
+            throw new IllegalArgumentException(
+                    String.format("Listing not found for listingId %s and userId %s", listingId, userId)
+            );
+        }
+        listingRepository.delete(listingId, userId);
+    }
+
 }

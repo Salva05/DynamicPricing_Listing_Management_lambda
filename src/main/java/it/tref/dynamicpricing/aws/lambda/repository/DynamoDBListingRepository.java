@@ -152,4 +152,15 @@ public class DynamoDBListingRepository implements ListingRepository {
                 .map(dynamoDBListingMapper::fromDynamoDbItem)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public void delete(String listingId, String userId) {
+        Map<String, AttributeValue> key = buildCompositeKey(listingId, userId);
+        DeleteItemRequest request = DeleteItemRequest.builder()
+                .tableName(configService.getDynamoDbListingTableName())
+                .key(key)
+                .build();
+        dynamoDbClient.deleteItem(request);
+        logger.info("Deleted listing with ID: {} for user: {}", listingId, userId);
+    }
 }

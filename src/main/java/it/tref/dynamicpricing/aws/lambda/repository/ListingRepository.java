@@ -38,4 +38,12 @@ public interface ListingRepository {
      * @return a list of Listing objects; may be empty if none are found.
      */
     List<Listing> findByUserId(String userId);
+
+    /**
+     * Deletes a listing for the given listingId and userId.
+     *
+     * @param listingId the identifier of the listing.
+     * @param userId    the identifier of the user.
+     */
+    void delete(String listingId, String userId);
 }
