@@ -3,6 +3,7 @@ package it.tref.dynamicpricing.aws.lambda.mapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.tref.dynamicpricing.aws.lambda.exception.JsonProcessingRuntimeException;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -43,10 +44,14 @@ public class MapperService {
      * @param value     the JSON string to be deserialized.
      * @param valueType the {@link Class} of type T.
      * @return an instance of type T populated with data from the JSON string.
-     * @throws JsonProcessingException if there is an error during deserialization.
+     * @throws RuntimeException if there is an error during deserialization.
      */
-    public <T> T readValue(String value, Class<T> valueType) throws JsonProcessingException {
-        return mapper.readValue(value, valueType);
+    public <T> T readValue(String value, Class<T> valueType) {
+        try {
+            return mapper.readValue(value, valueType);
+        } catch (JsonProcessingException e) {
+            throw new JsonProcessingRuntimeException("Error deserializing JSON", e);
+        }
     }
 
     /**
@@ -54,9 +59,13 @@ public class MapperService {
      *
      * @param value the object to be serialized.
      * @return a JSON string representation of the object.
-     * @throws JsonProcessingException if there is an error during serialization.
+     * @throws RuntimeException if there is an error during serialization.
      */
-    public String writeValueAsString(Object value) throws JsonProcessingException {
-        return mapper.writeValueAsString(value);
+    public String writeValueAsString(Object value) {
+        try {
+            return mapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new JsonProcessingRuntimeException("Error serializing object to JSON", e);
+        }
     }
 }

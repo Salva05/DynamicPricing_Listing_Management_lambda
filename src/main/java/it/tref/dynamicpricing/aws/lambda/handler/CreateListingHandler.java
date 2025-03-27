@@ -3,6 +3,7 @@ package it.tref.dynamicpricing.aws.lambda.handler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import it.tref.dynamicpricing.aws.lambda.aop.HandleErrors;
 import it.tref.dynamicpricing.aws.lambda.dto.CreateListingRequest;
 import it.tref.dynamicpricing.aws.lambda.mapper.MapperService;
 import it.tref.dynamicpricing.aws.lambda.service.ListingService;
@@ -47,43 +48,28 @@ public class CreateListingHandler extends AbstractHandler {
      *
      * @param event the API Gateway request event.
      * @return the API Gateway response event.
+     * @throws JsonProcessingException if JSON deserialization fails.
      */
     @Override
+    @HandleErrors
     public APIGatewayProxyResponseEvent handleEvent(APIGatewayProxyRequestEvent event) {
-        try {
-            String body = event.getBody();
-            logger.info("Request body is {}", body);
+        String body = event.getBody();
+        logger.info("Request body is {}", body);
 
-            // Deserialize the request payload into the CreateListingRequest DTO
-            CreateListingRequest createListingRequest =
-                    mapperService.readValue(body, CreateListingRequest.class);
+        // Deserialize the request payload into the CreateListingRequest DTO.
+        CreateListingRequest createListingRequest = mapperService.readValue(body, CreateListingRequest.class);
 
-            // Extract useId
-            String userId = TokenUtil.extractUserIdFromEvent(event);
+        // Extract userId from token claims.
+        String userId = TokenUtil.extractUserIdFromEvent(event);
 
-            String newListingId = listingService.createListing(createListingRequest, userId);
+        // Delegate creation to the ListingService.
+        String newListingId = listingService.createListing(createListingRequest, userId);
 
-            // Build the Location URI
-            String locationUri = "/listings/" + newListingId;
+        // Build the Location URI.
+        String locationUri = "/listings/" + newListingId;
 
-            return new APIGatewayProxyResponseEvent()
-                    .withStatusCode(HttpStatusCode.CREATED)
-                    .withHeaders(Collections.singletonMap("Location", locationUri));
-        } catch (JsonProcessingException e) {
-            logger.error("JSON processing error: {}", e.getMessage(), e);
-            return new APIGatewayProxyResponseEvent()
-                    .withStatusCode(HttpStatusCode.BAD_REQUEST)
-                    .withBody("Invalid request payload");
-        } catch (IllegalArgumentException e) {
-            logger.error("Validation error: {}", e.getMessage(), e);
-            return new APIGatewayProxyResponseEvent()
-                    .withStatusCode(HttpStatusCode.BAD_REQUEST)
-                    .withBody(e.getMessage());
-        } catch (Exception e) {
-            logger.error("Error creating listing: {}", e.getMessage(), e);
-            return new APIGatewayProxyResponseEvent()
-                    .withStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR)
-                    .withBody("Error creating listing");
-        }
+        return new APIGatewayProxyResponseEvent()
+                .withStatusCode(HttpStatusCode.CREATED)
+                .withHeaders(Collections.singletonMap("Location", locationUri));
     }
 }
