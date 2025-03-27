@@ -10,7 +10,7 @@ import org.mockito.ArgumentCaptor;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class ListingServiceTest {
+public class ListingServiceCreateTest {
 
     private ListingRepository listingRepository;
     private ListingService listingService;
