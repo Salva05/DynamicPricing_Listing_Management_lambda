@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -128,5 +129,27 @@ public class DynamoDBListingRepository implements ListingRepository {
 
         dynamoDbClient.updateItem(request);
         logger.info("Updated listing with ID: {} for user: {}", listing.getListingId(), listing.getUserId());
+    }
+
+    @Override
+    public List<Listing> findByUserId(String userId) {
+        Map<String, AttributeValue> expressionAttributeValues = Map.of(
+                ":userId", AttributeValue.builder().s(userId).build()
+        );
+
+        // Query using the GSI
+        QueryRequest request = QueryRequest.builder()
+                .tableName(configService.getDynamoDbListingTableName())
+                .indexName(configService.getDynamoDbUserListingsIndexName())
+                .keyConditionExpression("userId = :userId")
+                .expressionAttributeValues(expressionAttributeValues)
+                .build();
+
+        QueryResponse response = dynamoDbClient.query(request);
+        logger.info("Found {} listings for user {}", response.count(), userId);
+
+        return response.items().stream()
+                .map(dynamoDBListingMapper::fromDynamoDbItem)
+                .collect(Collectors.toList());
     }
 }
