@@ -19,4 +19,13 @@ public interface ListingRepository {
      * @param listing the listing with updated data.
      */
     void update(Listing listing);
+
+    /**
+     * Finds a listing by its composite primary key (listingId and userId).
+     *
+     * @param listingId the unique identifier for the listing.
+     * @param userId    the unique identifier for the user.
+     * @return the Listing if found, or null if not found.
+     */
+    Listing findById(String listingId, String userId);
 }

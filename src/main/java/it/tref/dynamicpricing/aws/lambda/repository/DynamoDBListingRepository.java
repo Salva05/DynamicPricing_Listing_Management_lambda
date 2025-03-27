@@ -57,6 +57,28 @@ public class DynamoDBListingRepository implements ListingRepository {
     }
 
     /**
+     * Retrieves a Listing from DynamoDB using its composite primary key.
+     *
+     * @param listingId the unique identifier for the listing.
+     * @param userId    the unique identifier for the user.
+     * @return the Listing if found, or null if not found.
+     */
+    @Override
+    public Listing findById(String listingId, String userId) {
+        Map<String, AttributeValue> key = buildCompositeKey(listingId, userId);
+        GetItemRequest request = GetItemRequest.builder()
+                .tableName(configService.getDynamoDbListingTableName())
+                .key(key)
+                .build();
+
+        GetItemResponse response = dynamoDbClient.getItem(request);
+        if (response.hasItem() && !response.item().isEmpty()) {
+            return dynamoDBListingMapper.fromDynamoDbItem(response.item());
+        }
+        return null;
+    }
+
+    /**
      * Persists the given Listing in DynamoDB.
      *
      * @param listing the listing to persist.
@@ -78,6 +100,7 @@ public class DynamoDBListingRepository implements ListingRepository {
      * @param listing the Listing object containing updated data. The listing must have a valid listingId and userId.
      * @throws RuntimeException if the update operation fails.
      */
+
     @Override
     public void update(Listing listing) {
         Map<String, AttributeValue> key = buildCompositeKey(listing.getListingId(), listing.getUserId());
