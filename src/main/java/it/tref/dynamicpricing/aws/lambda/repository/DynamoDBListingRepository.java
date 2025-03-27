@@ -1,5 +1,6 @@
 package it.tref.dynamicpricing.aws.lambda.repository;
 
+import it.tref.dynamicpricing.aws.lambda.aop.DynamoDBErrorHandled;
 import it.tref.dynamicpricing.aws.lambda.config.ConfigService;
 import it.tref.dynamicpricing.aws.lambda.mapper.DynamoDBListingMapper;
 import it.tref.dynamicpricing.aws.lambda.model.Listing;
@@ -7,9 +8,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Implementation of ListingRepository using AWS DynamoDB configured client.
  */
+@DynamoDBErrorHandled
 @ApplicationScoped
 public class DynamoDBListingRepository implements ListingRepository {
 
@@ -68,13 +68,8 @@ public class DynamoDBListingRepository implements ListingRepository {
                 .tableName(configService.getDynamoDbListingTableName())
                 .item(item)
                 .build();
-        try {
-            dynamoDbClient.putItem(putItemRequest);
-            logger.info("Successfully persisted listing with ID: {}", listing.getListingId());
-        } catch (Exception e) {
-            logger.error("Error persisting listing with ID: {}. Error: {}", listing.getListingId(), e.getMessage(), e);
-            throw e;
-        }
+        dynamoDbClient.putItem(putItemRequest);
+        logger.info("Successfully persisted listing with ID: {}", listing.getListingId());
     }
 
     /**
@@ -92,13 +87,13 @@ public class DynamoDBListingRepository implements ListingRepository {
                 "#attributes", "attributes"
         );
         Map<String, AttributeValue> exprAttrValues = new HashMap<>();
-        exprAttrValues.put(":name", AttributeValue.builder().s(listing.getName()).build());         // Name binding
+        exprAttrValues.put(":name", AttributeValue.builder().s(listing.getName()).build()); // Name binding
         Map<String, AttributeValue> attributesMap = listing.getAttributes().entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         e -> AttributeValue.builder().s(e.getValue().toString()).build()
                 ));
-        exprAttrValues.put(":attributes", AttributeValue.builder().m(attributesMap).build());       // Attributes binding
+        exprAttrValues.put(":attributes", AttributeValue.builder().m(attributesMap).build()); // Attributes binding
 
         UpdateItemRequest request = UpdateItemRequest.builder()
                 .tableName(configService.getDynamoDbListingTableName())
@@ -108,12 +103,7 @@ public class DynamoDBListingRepository implements ListingRepository {
                 .expressionAttributeValues(exprAttrValues)
                 .build();
 
-        try {
-            dynamoDbClient.updateItem(request);
-            logger.info("Updated listing with ID: {} for user: {}", listing.getListingId(), listing.getUserId());
-        } catch (Exception e) {
-            logger.error("Error updating listing with ID: {}. Error: {}", listing.getListingId(), e.getMessage(), e);
-            throw e;
-        }
+        dynamoDbClient.updateItem(request);
+        logger.info("Updated listing with ID: {} for user: {}", listing.getListingId(), listing.getUserId());
     }
 }
