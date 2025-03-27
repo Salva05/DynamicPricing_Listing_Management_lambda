@@ -25,6 +25,12 @@ public class ConfigService {
     String dynamoDbListingTableName;
 
     /**
+     * The DynamoDB Global Secondary Index name for User's Listings.
+     */
+    @ConfigProperty(name = "quarkus.dynamodb.user.listings.index.name")
+    String dynamoDbUserListingsIndexName;
+
+    /**
      * Returns the configured AWS region for DynamoDB.
      *
      * @return the AWS region as a {@link String}.
@@ -40,6 +46,15 @@ public class ConfigService {
      */
     public String getDynamoDbListingTableName() {
         return dynamoDbListingTableName;
+    }
+
+    /**
+     * Returns the DynamoDB GSI name for User's Listings.
+     *
+     * @return the DynamoDB GSI name for User's Listings.
+     */
+    public String getDynamoDbUserListingsIndexName() {
+        return dynamoDbUserListingsIndexName;
     }
 
 
