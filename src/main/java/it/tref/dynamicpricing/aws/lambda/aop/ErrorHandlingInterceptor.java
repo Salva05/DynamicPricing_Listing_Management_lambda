@@ -8,7 +8,6 @@ import jakarta.interceptor.InvocationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * Interceptor that handles errors thrown by Lambda handler methods.
