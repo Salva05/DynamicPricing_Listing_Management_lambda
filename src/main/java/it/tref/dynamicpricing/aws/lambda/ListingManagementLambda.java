@@ -6,17 +6,20 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import it.tref.dynamicpricing.aws.lambda.handler.CreateListingHandler;
 // import it.tref.dynamicpricing.aws.lambda.handler.DeleteListingHandler;
-// import it.tref.dynamicpricing.aws.lambda.handler.GetListingHandler;
+import it.tref.dynamicpricing.aws.lambda.handler.ListListingHandler;
+import it.tref.dynamicpricing.aws.lambda.handler.RetrieveListingHandler;
 import it.tref.dynamicpricing.aws.lambda.handler.UpdateListingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
 
+import java.util.Map;
+
 /**
  * Entry point for the Listing Management Lambda.
  * <p>
  * This class implements the AWS Lambda RequestHandler interface and routes incoming
- * API Gateway events to the appropriate handler (create, update, delete, get listing).
+ * API Gateway events to the appropriate handler (create, update, delete, retrieve and list listing).
  * The API Gateway is configured with a Cognito authorizer so that only authenticated
  * requests reach this entrypoint.
  * </p>
@@ -30,7 +33,8 @@ public class ListingManagementLambda implements RequestHandler<APIGatewayProxyRe
     private final CreateListingHandler createListingHandler;
     private final UpdateListingHandler updateListingHandler;
     // private final DeleteListingHandler deleteListingHandler;
-    // private final GetListingHandler getListingHandler;
+    private final RetrieveListingHandler retrieveListingHandler;
+    private final ListListingHandler listListingHandler;
 
     /**
      * Constructs a new ListingManagementLambda with the given handlers.
@@ -41,14 +45,13 @@ public class ListingManagementLambda implements RequestHandler<APIGatewayProxyRe
      * // @param getListingHandler    the handler for retrieving listings.
      */
     public ListingManagementLambda(CreateListingHandler createListingHandler,
-                                   UpdateListingHandler updateListingHandler
-                                   // DeleteListingHandler deleteListingHandler,
-                                   // GetListingHandler getListingHandler
-    ) {
+                                   UpdateListingHandler updateListingHandler,
+                                   RetrieveListingHandler retrieveListingHandler,
+                                   ListListingHandler listListingHandler) {
         this.createListingHandler = createListingHandler;
         this.updateListingHandler = updateListingHandler;
-        // this.deleteListingHandler = deleteListingHandler;
-        // this.getListingHandler = getListingHandler;
+        this.retrieveListingHandler = retrieveListingHandler;
+        this.listListingHandler = listListingHandler;
     }
 
     /**
@@ -65,14 +68,18 @@ public class ListingManagementLambda implements RequestHandler<APIGatewayProxyRe
         String method = input.getHttpMethod();
         logger.info("HTTP Method: {}", method);
 
-        // Route based on the HTTP method (you might also use path parameters or resource URIs)
         switch (method) {
             case "POST":
                 return createListingHandler.handleEvent(input);
             case "PUT":
                 return updateListingHandler.handleEvent(input);
-            // case "GET":
-                // return getListingHandler.handleEvent(input);
+            case "GET":
+                Map<String, String> pathParams = input.getPathParameters();
+                if (pathParams != null && ((Map<?, ?>) pathParams).containsKey("listingId")) {
+                    return retrieveListingHandler.handleEvent(input);   // RETRIEVE
+                } else {
+                    return listListingHandler.handleEvent(input);       // LIST
+                }
             // case "DELETE":
                 // return deleteListingHandler.handleEvent(input);
             default:
