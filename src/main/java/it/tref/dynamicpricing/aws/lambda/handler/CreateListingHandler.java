@@ -54,7 +54,7 @@ public class CreateListingHandler extends AbstractHandler {
     @HandleErrors
     public APIGatewayProxyResponseEvent handleEvent(APIGatewayProxyRequestEvent event) {
         String body = event.getBody();
-        logger.info("Request body is {}", body);
+        logger.info("CREATE request body is {}", body);
 
         // Deserialize the request payload into the CreateListingRequest DTO.
         CreateListingRequest createListingRequest = mapperService.readValue(body, CreateListingRequest.class);

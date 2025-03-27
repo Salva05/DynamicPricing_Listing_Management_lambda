@@ -50,7 +50,7 @@ public class UpdateListingHandler extends AbstractHandler {
     @HandleErrors
     public APIGatewayProxyResponseEvent handleEvent(APIGatewayProxyRequestEvent event) {
         String body = event.getBody();
-        logger.info("Update request body: {}", body);
+        logger.info("UPDATE request body: {}", body);
 
         UpdateListingRequest updateListingRequest = mapperService.readValue(body, UpdateListingRequest.class);
 
