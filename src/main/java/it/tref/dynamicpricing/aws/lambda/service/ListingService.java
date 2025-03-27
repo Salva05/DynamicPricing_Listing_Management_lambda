@@ -1,40 +1,35 @@
 package it.tref.dynamicpricing.aws.lambda.service;
 
+import it.tref.dynamicpricing.aws.lambda.aop.ValidatePayload;
 import it.tref.dynamicpricing.aws.lambda.dto.CreateListingRequest;
-import it.tref.dynamicpricing.aws.lambda.dto.CreateListingResponse;
+import it.tref.dynamicpricing.aws.lambda.dto.UpdateListingRequest;
 import it.tref.dynamicpricing.aws.lambda.model.Listing;
 import it.tref.dynamicpricing.aws.lambda.repository.ListingRepository;
-import it.tref.dynamicpricing.aws.lambda.validation.ValidationService;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.validation.ConstraintViolation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Provides business logic for Listing operations.
  */
 @ApplicationScoped
+@ValidatePayload
 public class ListingService {
 
     private static final Logger logger = LoggerFactory.getLogger(ListingService.class);
 
     private final ListingRepository listingRepository;
-    private final ValidationService validationService;
 
     /**
      * Constructs a new ListingService.
      *
      * @param listingRepository the repository to persist listings.
-     * @param validationService the service to validate incoming data.
      */
-    public ListingService(ListingRepository listingRepository, ValidationService validationService) {
+    public ListingService(ListingRepository listingRepository) {
         this.listingRepository = listingRepository;
-        this.validationService = validationService;
     }
 
     /**
@@ -42,21 +37,10 @@ public class ListingService {
      *
      * @param request the DTO containing client-provided data.
      * @param userId  the user identifier extracted from token claims.
-     * @return a response DTO containing the generated listingId.
+     * @return the generated listingId for the new listing.
      * @throws IllegalArgumentException if validation fails.
      */
-    public CreateListingResponse createListing(CreateListingRequest request, String userId) {
-        // Validate the incoming DTO
-        Set<ConstraintViolation<CreateListingRequest>> violations = validationService.validate(request);
-        if (!violations.isEmpty()) {
-            String errorMessage = violations.stream()
-                    .map(ConstraintViolation::getMessage)
-                    .collect(Collectors.joining(", "));
-            logger.warn("Validation failed: {}", errorMessage);
-            throw new IllegalArgumentException("Validation error: " + errorMessage);
-        }
-
-        // Map the DTO to the internal Listing model
+    public String createListing(CreateListingRequest request, String userId) {
         Listing listing = new Listing();
         listing.setListingId(UUID.randomUUID().toString());
         listing.setUserId(userId);
@@ -65,14 +49,34 @@ public class ListingService {
         if (request.getAttributes() != null) {
             request.getAttributes().forEach(listing::addAttribute);
         }
-
-        // Persist the listing
         listingRepository.save(listing);
+        return listing.getListingId();
+    }
 
-        // Build and return the response DTO
-        CreateListingResponse response = new CreateListingResponse();
-        response.setListingId(listing.getListingId());
-        logger.info("Created listing with ID: {} for user: {}", listing.getListingId(), userId);
-        return response;
+    /**
+     * Updates an existing listing using a partial update approach.
+     *
+     * @param listingId the identifier of the listing to update.
+     * @param request   the DTO containing the update data (fields are optional).
+     * @param userId    the user identifier.
+     * @throws IllegalArgumentException if validation fails or the listing is not found.
+     */
+    public void updateListing(String listingId, UpdateListingRequest request, String userId) {
+
+        Listing existingListing = listingRepository.findById(listingId, userId);
+        if (existingListing == null) {
+            throw new IllegalArgumentException(String.format("Listing not found for key: (listingId) %s, (userId) %s", listingId, userId));
+        }
+
+        if (request.getName() != null) {
+            existingListing.setName(request.getName());
+        }
+        if (request.getAttributes() != null) {
+            // Replaces all the old attributes - client must send the complete list of attributes
+            request.getAttributes().forEach(existingListing::addAttribute);
+        }
+
+        listingRepository.update(existingListing);
+        logger.info("Updated listing with ID: {} for user: {}", listingId, userId);
     }
 }
