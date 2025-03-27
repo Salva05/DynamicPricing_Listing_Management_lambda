@@ -3,7 +3,6 @@ package it.tref.dynamicpricing.aws.lambda.handler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import it.tref.dynamicpricing.aws.lambda.dto.CreateListingRequest;
-import it.tref.dynamicpricing.aws.lambda.dto.CreateListingResponse;
 import it.tref.dynamicpricing.aws.lambda.mapper.MapperService;
 import it.tref.dynamicpricing.aws.lambda.service.ListingService;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 public class CreateListingHandlerTest {
@@ -48,32 +48,29 @@ public class CreateListingHandlerTest {
         proxyRequestContext.setAuthorizer(authorizer);
         requestEvent.setRequestContext(proxyRequestContext);
 
-        // Prepare the expected DTO
+        // Prepare the expected CreateListingRequest DTO
         CreateListingRequest createListingRequest = new CreateListingRequest();
         createListingRequest.setName("Test Listing");
 
         // When mapperService.readValue is called, return our DTO
         when(mapperService.readValue(jsonPayload, CreateListingRequest.class)).thenReturn(createListingRequest);
 
-        // Simulate the service returning a response DTO
-        CreateListingResponse createListingResponse = new CreateListingResponse();
-        createListingResponse.setListingId("dummy-id");
-        when(listingService.createListing(eq(createListingRequest), anyString())).thenReturn(createListingResponse);
-
-        // When serializing the response DTO
-        when(mapperService.writeValueAsString(createListingResponse)).thenReturn("{\"listingId\":\"dummy-id\"}");
+        // Simulate the service returning a listing ID
+        String dummyListingId = "dummy-id";
+        when(listingService.createListing(eq(createListingRequest), anyString())).thenReturn(dummyListingId);
 
         // Call the handler
         APIGatewayProxyResponseEvent responseEvent = createListingHandler.handleEvent(requestEvent);
 
-        // Verify that a 201 Created status is returned with the expected response body
+        // Verify that a 201 Created status is returned
         assertEquals(201, responseEvent.getStatusCode());
-        assertTrue(responseEvent.getBody().contains("dummy-id"));
+        // Verify that the Location header is set correctly
+        assertNotNull(responseEvent.getHeaders());
+        assertEquals("/listings/" + dummyListingId, responseEvent.getHeaders().get("Location"));
 
         // Verify that listingService.createListing() was called with the correct DTO
         ArgumentCaptor<String> userIdCaptor = ArgumentCaptor.forClass(String.class);
         verify(listingService, times(1)).createListing(eq(createListingRequest), userIdCaptor.capture());
         assertNotNull(userIdCaptor.getValue());
     }
-
 }

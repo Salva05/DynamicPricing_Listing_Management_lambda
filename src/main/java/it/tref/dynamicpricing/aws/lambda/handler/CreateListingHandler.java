@@ -4,7 +4,6 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import it.tref.dynamicpricing.aws.lambda.dto.CreateListingRequest;
-import it.tref.dynamicpricing.aws.lambda.dto.CreateListingResponse;
 import it.tref.dynamicpricing.aws.lambda.mapper.MapperService;
 import it.tref.dynamicpricing.aws.lambda.service.ListingService;
 import it.tref.dynamicpricing.aws.lambda.util.TokenUtil;
@@ -13,12 +12,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
 
+import java.util.Collections;
+
 /**
  * AWS Lambda handler for creating a new Listing.
  * <p>
- * This handler deserializes the API Gateway event payload into a CreateListingRequest DTO,
- * extracts the user ID from token claims, delegates the business logic to the ListingService,
- * and serializes the response.
+ * This handler deserializes the API Gateway event payload into a {@code CreateListingRequest} DTO,
+ * extracts the user ID from token claims, and delegates the creation logic to the {@code ListingService}.
+ * On successful creation, it returns a 201 Created response with a {@code Location} header that points to the URI
+ * of the newly created listing.
  * </p>
  */
 @ApplicationScoped
@@ -59,13 +61,14 @@ public class CreateListingHandler extends AbstractHandler {
             // Extract useId
             String userId = TokenUtil.extractUserIdFromEvent(event);
 
-            // Delegate creation to the ListingService
-            CreateListingResponse response = listingService.createListing(createListingRequest, userId);
-            String responseBody = mapperService.writeValueAsString(response);
+            String newListingId = listingService.createListing(createListingRequest, userId);
+
+            // Build the Location URI
+            String locationUri = "/listings/" + newListingId;
 
             return new APIGatewayProxyResponseEvent()
                     .withStatusCode(HttpStatusCode.CREATED)
-                    .withBody(responseBody);
+                    .withHeaders(Collections.singletonMap("Location", locationUri));
         } catch (JsonProcessingException e) {
             logger.error("JSON processing error: {}", e.getMessage(), e);
             return new APIGatewayProxyResponseEvent()
