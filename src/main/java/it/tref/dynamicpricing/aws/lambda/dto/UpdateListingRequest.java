@@ -21,8 +21,14 @@ public class UpdateListingRequest {
     @JsonProperty("attributes")
     private Map<String, Object> attributes;
 
-    @JsonCreator
     public UpdateListingRequest() {
+    }
+
+    @JsonCreator
+    public UpdateListingRequest(@JsonProperty("name") String name,
+                                @JsonProperty("attributes") Map<String, Object> attributes) {
+        this.name = name;
+        this.attributes = attributes;
     }
 
     public String getName() {

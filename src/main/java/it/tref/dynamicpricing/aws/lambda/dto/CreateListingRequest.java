@@ -2,6 +2,7 @@ package it.tref.dynamicpricing.aws.lambda.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import it.tref.dynamicpricing.aws.lambda.handler.CreateListingHandler;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.Map;
 
@@ -20,8 +21,15 @@ public class CreateListingRequest {
     @JsonProperty("attributes")
     private Map<String, Object> attributes;
 
-    @JsonCreator
     public CreateListingRequest() {
+    }
+
+    @JsonCreator
+    public CreateListingRequest(
+            @JsonProperty(value = "name", required = true) String name,
+            @JsonProperty("attributes") Map<String, Object> attributes) {
+        this.name = name;
+        this.attributes = attributes;
     }
 
     public String getName() {

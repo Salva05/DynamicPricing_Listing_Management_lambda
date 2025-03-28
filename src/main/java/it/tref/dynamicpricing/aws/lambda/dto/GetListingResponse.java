@@ -15,8 +15,12 @@ public class GetListingResponse {
     @JsonProperty("listing")
     private Listing listing;
 
-    @JsonCreator
     public GetListingResponse() {
+    }
+
+    @JsonCreator
+    public GetListingResponse(@JsonProperty("listing") Listing listing) {
+        this.listing = listing;
     }
 
     public Listing getListing() {
