@@ -2,7 +2,6 @@ package it.tref.dynamicpricing.aws.lambda.handler;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import it.tref.dynamicpricing.aws.lambda.aop.HandleErrors;
 import it.tref.dynamicpricing.aws.lambda.dto.CreateListingRequest;
 import it.tref.dynamicpricing.aws.lambda.mapper.MapperService;
@@ -48,7 +47,6 @@ public class CreateListingHandler extends AbstractHandler {
      *
      * @param event the API Gateway request event.
      * @return the API Gateway response event.
-     * @throws JsonProcessingException if JSON deserialization fails.
      */
     @Override
     @HandleErrors
@@ -56,16 +54,14 @@ public class CreateListingHandler extends AbstractHandler {
         String body = event.getBody();
         logger.info("CREATE request body is {}", body);
 
-        // Deserialize the request payload into the CreateListingRequest DTO.
         CreateListingRequest createListingRequest = mapperService.readValue(body, CreateListingRequest.class);
 
-        // Extract userId from token claims.
+        // Extract userId from token claims
         String userId = TokenUtil.extractUserIdFromEvent(event);
 
-        // Delegate creation to the ListingService.
         String newListingId = listingService.createListing(createListingRequest, userId);
 
-        // Build the Location URI.
+        // Location URI of the resource
         String locationUri = "/listings/" + newListingId;
 
         return new APIGatewayProxyResponseEvent()
