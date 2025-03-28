@@ -101,7 +101,6 @@ public class DynamoDBListingRepository implements ListingRepository {
      * @param listing the Listing object containing updated data. The listing must have a valid listingId and userId.
      * @throws RuntimeException if the update operation fails.
      */
-
     @Override
     public void update(Listing listing) {
         Map<String, AttributeValue> key = buildCompositeKey(listing.getListingId(), listing.getUserId());
