@@ -15,20 +15,21 @@ public class ConfigService {
      * If not explicitly set, it defaults to "eu-south-1".
      * </p>
      */
-    @ConfigProperty(name = "quarkus.dynamodb.aws.region", defaultValue = "eu-south-1")
+    @ConfigProperty(name = "REGION", defaultValue = "eu-south-1")
     String dynamoDbRegion;
 
     /**
      * The DynamoDB listing table name.
      */
-    @ConfigProperty(name = "quarkus.dynamodb.listing.table.name")
+    @ConfigProperty(name = "LISTING_TABLE_NAME")
     String dynamoDbListingTableName;
 
     /**
      * The DynamoDB Global Secondary Index name for User's Listings.
      */
-    @ConfigProperty(name = "quarkus.dynamodb.user.listings.index.name")
+    @ConfigProperty(name = "LISTING_INDEX_TABLE_NAME")
     String dynamoDbUserListingsIndexName;
+
 
     /**
      * Returns the configured AWS region for DynamoDB.
