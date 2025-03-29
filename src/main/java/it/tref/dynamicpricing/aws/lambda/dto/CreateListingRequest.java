@@ -2,6 +2,7 @@ package it.tref.dynamicpricing.aws.lambda.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import it.tref.dynamicpricing.aws.lambda.handler.CreateListingHandler;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.Map;
  * This DTO only includes the fields the client is allowed to provide.
  * </p>
  */
+@RegisterForReflection
 public class CreateListingRequest {
 
     @NotEmpty(message = "Listing name is required")

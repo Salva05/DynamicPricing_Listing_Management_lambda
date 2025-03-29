@@ -2,6 +2,7 @@ package it.tref.dynamicpricing.aws.lambda.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.constraints.NotEmpty;
 import java.util.Map;
 
@@ -13,6 +14,7 @@ import java.util.Map;
  * a URL path parameter (e.g. PUT /listings/{listingId}).
  * </p>
  */
+@RegisterForReflection
 public class UpdateListingRequest {
 
     @JsonProperty("name")

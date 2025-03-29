@@ -2,6 +2,7 @@ package it.tref.dynamicpricing.aws.lambda.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import it.tref.dynamicpricing.aws.lambda.model.Listing;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import java.util.List;
  * The payload contains a list of all listings owned by the user.
  * </p>
  */
+@RegisterForReflection
 public class ListListingsResponse {
 
     @JsonProperty("listings")

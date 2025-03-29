@@ -3,6 +3,7 @@ package it.tref.dynamicpricing.aws.lambda.model;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.constraints.NotEmpty;
 
 import java.time.Instant;
@@ -17,6 +18,7 @@ import java.util.Map;
  * indicates whether the AI price prediction has been performed.
  * </p>
  */
+@RegisterForReflection
 public class Listing {
 
     /**
