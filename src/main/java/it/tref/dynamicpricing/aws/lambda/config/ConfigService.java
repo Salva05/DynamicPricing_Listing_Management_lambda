@@ -30,7 +30,7 @@ public class ConfigService {
     /**
      * The SQS queue URL.
      */
-    @ConfigProperty(name = "SQS_QUEUE_URL")
+    @ConfigProperty(name = "PREDICTION_QUEUE_URL")
     public String sqsQueueUrl;
 
     /**
@@ -44,7 +44,6 @@ public class ConfigService {
      */
     @ConfigProperty(name = "LISTING_INDEX_TABLE_NAME")
     String dynamoDbUserListingsIndexName;
-
 
     public String getDynamoDbRegion() {
         return dynamoDbRegion;
@@ -65,6 +64,5 @@ public class ConfigService {
     public String getDynamoDbUserListingsIndexName() {
         return dynamoDbUserListingsIndexName;
     }
-
 
 }
