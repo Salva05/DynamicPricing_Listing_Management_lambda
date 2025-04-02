@@ -2,6 +2,7 @@ package it.tref.dynamicpricing.aws.lambda.service;
 
 import it.tref.dynamicpricing.aws.lambda.aop.ValidatePayload;
 import it.tref.dynamicpricing.aws.lambda.dto.CreateListingRequest;
+import it.tref.dynamicpricing.aws.lambda.dto.ListingSqsMessage;
 import it.tref.dynamicpricing.aws.lambda.dto.UpdateListingRequest;
 import it.tref.dynamicpricing.aws.lambda.model.Listing;
 import it.tref.dynamicpricing.aws.lambda.repository.ListingRepository;
@@ -23,18 +24,23 @@ public class ListingService {
     private static final Logger logger = LoggerFactory.getLogger(ListingService.class);
 
     private final ListingRepository listingRepository;
+    private final SqsProducerService sqsProducerService;
 
     /**
      * Constructs a new ListingService.
      *
      * @param listingRepository the repository to persist listings.
+     * @param sqsProducerService the service for sending SQS messages for AI inference.
      */
-    public ListingService(ListingRepository listingRepository) {
+    public ListingService(ListingRepository listingRepository, SqsProducerService sqsProducerService) {
         this.listingRepository = listingRepository;
+        this.sqsProducerService = sqsProducerService;
     }
 
     /**
-     * Creates a new listing from the client-supplied DTO.
+     * Creates a new listing from the client-supplied DTO,
+     * persisting it and sending an SQS message (with the composite key
+     * and attributes) for AI inference processing.
      *
      * @param request the DTO containing client-provided data.
      * @param userId  the user identifier extracted from token claims.
@@ -51,6 +57,13 @@ public class ListingService {
             request.getAttributes().forEach(listing::addAttribute);
         }
         listingRepository.save(listing);
+
+        // Send the SQS message with the composite key and listing details for AI inference processing
+        sqsProducerService.sendListingToQueue(new ListingSqsMessage(
+                listing.getListingId(),
+                listing.getUserId(),
+                ListingSqsMessage.convertAttributes(listing.getAttributes())
+        ));
         return listing.getListingId();
     }
 

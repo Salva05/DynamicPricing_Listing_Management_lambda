@@ -19,6 +19,21 @@ public class ConfigService {
     String dynamoDbRegion;
 
     /**
+     * The AWS region for SQS Queue.
+     * <p>
+     * If not explicitly set, it defaults to "eu-south-1".
+     * </p>
+     */
+    @ConfigProperty(name = "REGION", defaultValue = "eu-south-1")
+    String sqsQueueRegion;
+
+    /**
+     * The SQS queue URL.
+     */
+    @ConfigProperty(name = "SQS_QUEUE_URL")
+    public String sqsQueueUrl;
+
+    /**
      * The DynamoDB listing table name.
      */
     @ConfigProperty(name = "LISTING_TABLE_NAME")
@@ -31,29 +46,22 @@ public class ConfigService {
     String dynamoDbUserListingsIndexName;
 
 
-    /**
-     * Returns the configured AWS region for DynamoDB.
-     *
-     * @return the AWS region as a {@link String}.
-     */
     public String getDynamoDbRegion() {
         return dynamoDbRegion;
     }
 
-    /**
-     * Returns the DynamoDB listing table name.
-     *
-     * @return the DynamoDB listing table name.
-     */
+    public String getSqsQueueRegion() {
+        return sqsQueueRegion;
+    }
+
+    public String getSqsQueueUrl() {
+        return sqsQueueUrl;
+    }
+
     public String getDynamoDbListingTableName() {
         return dynamoDbListingTableName;
     }
 
-    /**
-     * Returns the DynamoDB GSI name for User's Listings.
-     *
-     * @return the DynamoDB GSI name for User's Listings.
-     */
     public String getDynamoDbUserListingsIndexName() {
         return dynamoDbUserListingsIndexName;
     }
