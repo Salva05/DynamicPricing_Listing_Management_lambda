@@ -18,6 +18,7 @@ dependencies {
     implementation 'io.quarkiverse.amazonservices:quarkus-amazon-dynamodb'
     implementation 'io.quarkus:quarkus-arc'
     implementation 'software.amazon.awssdk:url-connection-client'
+    implementation 'software.amazon.awssdk:sqs'
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
     testImplementation 'org.mockito:mockito-core:5.12.0'
