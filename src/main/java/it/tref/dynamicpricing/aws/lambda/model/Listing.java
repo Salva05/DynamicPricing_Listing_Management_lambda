@@ -60,6 +60,7 @@ public class Listing {
     /**
      * Holds additional dynamic attributes that are not explicitly defined as fields.
      */
+    @JsonProperty("attributes")
     private Map<String, Object> attributes = new HashMap<>();
 
     /**
@@ -168,13 +169,24 @@ public class Listing {
      *
      * @return a map of dynamic attributes.
      */
-    @JsonAnyGetter
     public Map<String, Object> getAttributes() {
         return attributes;
     }
 
     /**
-     * Adds a dynamic attribute.
+     * Sets the entire map of attributes
+     *
+     * @param attributes the map of attribute values.
+     */
+    public void setAttributes(Map<String, Object> attributes) {
+        this.attributes = attributes;
+    }
+
+    /**
+     * Adds a dynamic attribute to the listing.
+     * <p>
+     * Used by Jackson to capture unknown JSON properties during deserialization, storing them in the attributes map.
+     * </p>
      *
      * @param key the attribute key.
      * @param value the attribute value.
