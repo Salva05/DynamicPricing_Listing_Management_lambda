@@ -96,13 +96,14 @@ public class ListingManagementLambda implements RequestHandler<APIGatewayProxyRe
                 break;
         }
 
-        // Ensure headers are initialized and add CORS headers
-        if (response.getHeaders() == null) {
-            response.setHeaders(new HashMap<>());
+        Map<String, String> headers = new HashMap<>();
+        if (response.getHeaders() != null) {
+            headers.putAll(response.getHeaders());
         }
-        response.getHeaders().put("Access-Control-Allow-Origin", configService.getDomainUrl());
-        response.getHeaders().put("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        response.getHeaders().put("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        headers.put("Access-Control-Allow-Origin", configService.getDomainUrl());
+        headers.put("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        headers.put("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        response.setHeaders(headers);
 
         return response;
     }
