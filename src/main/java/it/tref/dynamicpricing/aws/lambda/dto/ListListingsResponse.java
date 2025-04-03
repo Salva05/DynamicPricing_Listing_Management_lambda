@@ -26,8 +26,15 @@ public class ListListingsResponse {
         this.listings = listings;
     }
 
-    @JsonValue
     public List<Listing> getListings() {
+        return listings;
+    }
+
+    /**
+     * Returns the listings list for JSON serialization as a top-level array.
+     */
+    @JsonValue
+    public List<Listing> value() {
         return listings;
     }
 
