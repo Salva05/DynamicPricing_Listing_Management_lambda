@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,6 +57,7 @@ public class ListingService {
         if (request.getAttributes() != null) {
             request.getAttributes().forEach(listing::addAttribute);
         }
+        listing.setPrediction(new HashMap<>());
         listingRepository.save(listing);
 
         // Send the SQS message with the composite key and listing details for AI inference processing
@@ -87,7 +89,7 @@ public class ListingService {
         }
         if (request.getAttributes() != null) {
             // Replaces all the old attributes - client must send the complete list of attributes
-            request.getAttributes().forEach(existingListing::addAttribute);
+            existingListing.setAttributes(request.getAttributes());
         }
 
         listingRepository.update(existingListing);

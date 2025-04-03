@@ -28,6 +28,7 @@ public class DynamoDBListingMapper {
      *   <li>{@code userId} (String)</li>
      *   <li>{@code createdAt} (String in ISO-8601 format)</li>
      *   <li>{@code completed} (Boolean)</li>
+     *   <li>{@code prediction} (Object)</li>
      * </ul>
      * <p>
      * Any dynamic attributes present in the Listing are nested under the key "attributes" as a map of strings.
@@ -55,6 +56,26 @@ public class DynamoDBListingMapper {
             item.put("attributes", AttributeValue.builder().m(attributesMap).build());
         }
 
+        if (listing.getPrediction() != null) {
+            Map<String, Object> predictionObj = (Map<String, Object>) listing.getPrediction();
+            Map<String, AttributeValue> predictionMap = new HashMap<>();
+            predictionObj.forEach((k, v) -> {
+                if (v instanceof Map) {
+                    Map<String, Object> innerMap = (Map<String, Object>) v;
+                    Map<String, AttributeValue> innerAttrMap = new HashMap<>();
+                    innerMap.forEach((innerKey, innerVal) -> {
+                        if (innerVal != null) {
+                            innerAttrMap.put(innerKey, AttributeValue.builder().s(innerVal.toString()).build());
+                        }
+                    });
+                    predictionMap.put(k, AttributeValue.builder().m(innerAttrMap).build());
+                } else if (v != null) {
+                    predictionMap.put(k, AttributeValue.builder().s(v.toString()).build());
+                }
+            });
+            item.put("prediction", AttributeValue.builder().m(predictionMap).build());
+        }
+
         return item;
     }
 
@@ -67,6 +88,7 @@ public class DynamoDBListingMapper {
      *   <li>{@code userId} (String)</li>
      *   <li>{@code createdAt} (String in ISO-8601 format, converted to {@link Instant})</li>
      *   <li>{@code completed} (Boolean)</li>
+     *   <li>{@code prediction} (Object)</li>
      * </ul>
      * <p>
      * If present, dynamic attributes are retrieved from the nested "attributes" map and added to the Listing's attributes.
@@ -94,6 +116,26 @@ public class DynamoDBListingMapper {
                     listing.getAttributes().put(k, v.s());
                 }
             });
+        }
+
+        if (item.containsKey("prediction") && item.get("prediction").m() != null) {
+            Map<String, AttributeValue> predictionAttrMap = item.get("prediction").m();
+            Map<String, Object> prediction = new HashMap<>();
+            predictionAttrMap.forEach((key, attrVal) -> {
+                if (attrVal.m() != null) {
+                    Map<String, AttributeValue> innerMap = attrVal.m();
+                    Map<String, Object> innerPrediction = new HashMap<>();
+                    innerMap.forEach((innerKey, innerAttrVal) -> {
+                        if (innerAttrVal.s() != null) {
+                            innerPrediction.put(innerKey, innerAttrVal.s());
+                        }
+                    });
+                    prediction.put(key, innerPrediction);
+                } else if (attrVal.s() != null) {
+                    prediction.put(key, attrVal.s());
+                }
+            });
+            listing.setPrediction(prediction);
         }
 
         return listing;

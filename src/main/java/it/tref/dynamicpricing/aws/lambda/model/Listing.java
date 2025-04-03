@@ -64,6 +64,12 @@ public class Listing {
     private Map<String, Object> attributes = new HashMap<>();
 
     /**
+     * Model's prediction over the listing.
+     */
+    @JsonProperty("prediction")
+    private Object prediction;
+
+    /**
      * Default constructor that sets the creation timestamp.
      */
     public Listing() {
@@ -194,6 +200,22 @@ public class Listing {
     @JsonAnySetter
     public void addAttribute(String key, Object value) {
         attributes.put(key, value);
+    }
+
+    /**
+     * Sets the prediction of the model to the listing.
+     */
+    public Object getPrediction() {
+        return prediction;
+    }
+
+    /**
+     * Returns a string representation of the Listing.
+     *
+     * @param prediction the prediction value.
+     */
+    public void setPrediction(Object prediction) {
+        this.prediction = prediction;
     }
 
     /**
