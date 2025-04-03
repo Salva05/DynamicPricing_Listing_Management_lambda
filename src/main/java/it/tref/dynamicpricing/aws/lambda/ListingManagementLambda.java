@@ -4,11 +4,13 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import it.tref.dynamicpricing.aws.lambda.config.ConfigService;
 import it.tref.dynamicpricing.aws.lambda.handler.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -29,25 +31,29 @@ public class ListingManagementLambda implements RequestHandler<APIGatewayProxyRe
     private final RetrieveListingHandler retrieveListingHandler;
     private final ListListingHandler listListingHandler;
     private final DeleteListingHandler deleteListingHandler;
+    private final ConfigService configService;
 
     /**
      * Constructs a new ListingManagementLambda with the given handlers.
      *
-     * @param createListingHandler the handler for creating listings.
-     * // @param updateListingHandler the handler for updating listings.
-     * // @param deleteListingHandler the handler for deleting listings.
-     * // @param getListingHandler    the handler for retrieving listings.
+     * @param createListingHandler  the handler for creating listings.
+     * @param updateListingHandler  the handler for updating listings.
+     * @param retrieveListingHandler the handler for retrieving listings.
+     * @param deleteListingHandler  the handler for deleting listings.
+     * @param listListingHandler    the handler for listing all listings.
      */
     public ListingManagementLambda(CreateListingHandler createListingHandler,
                                    UpdateListingHandler updateListingHandler,
                                    RetrieveListingHandler retrieveListingHandler,
                                    DeleteListingHandler deleteListingHandler,
-                                   ListListingHandler listListingHandler) {
+                                   ListListingHandler listListingHandler,
+                                   ConfigService configService) {
         this.createListingHandler = createListingHandler;
         this.updateListingHandler = updateListingHandler;
         this.retrieveListingHandler = retrieveListingHandler;
         this.deleteListingHandler = deleteListingHandler;
         this.listListingHandler = listListingHandler;
+        this.configService = configService;
     }
 
     /**
@@ -63,25 +69,41 @@ public class ListingManagementLambda implements RequestHandler<APIGatewayProxyRe
         String method = input.getHttpMethod();
         logger.info("HTTP Method: {}", method);
 
+        APIGatewayProxyResponseEvent response;
         switch (method) {
             case "POST":
-                return createListingHandler.handleEvent(input);
+                response = createListingHandler.handleEvent(input);
+                break;
             case "PUT":
-                return updateListingHandler.handleEvent(input);
+                response = updateListingHandler.handleEvent(input);
+                break;
             case "DELETE":
-                return deleteListingHandler.handleEvent(input);
+                response = deleteListingHandler.handleEvent(input);
+                break;
             case "GET":
                 Map<String, String> pathParams = input.getPathParameters();
                 if (pathParams != null && pathParams.containsKey("listingId")) {
-                    return retrieveListingHandler.handleEvent(input);
+                    response = retrieveListingHandler.handleEvent(input);
                 } else {
-                    return listListingHandler.handleEvent(input);
+                    response = listListingHandler.handleEvent(input);
                 }
+                break;
             default:
                 logger.warn("Unsupported HTTP method: {}", method);
-                return new APIGatewayProxyResponseEvent()
+                response = new APIGatewayProxyResponseEvent()
                         .withStatusCode(HttpStatusCode.BAD_REQUEST)
                         .withBody("Unsupported HTTP method");
+                break;
         }
+
+        // Ensure headers are initialized and add CORS headers
+        if (response.getHeaders() == null) {
+            response.setHeaders(new HashMap<>());
+        }
+        response.getHeaders().put("Access-Control-Allow-Origin", configService.getDomainUrl());
+        response.getHeaders().put("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.getHeaders().put("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+        return response;
     }
 }

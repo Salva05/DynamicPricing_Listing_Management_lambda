@@ -34,6 +34,12 @@ public class ConfigService {
     public String sqsQueueUrl;
 
     /**
+     * Domain URL of the frontend
+     */
+    @ConfigProperty(name = "DOMAIN_URL", defaultValue = "https://dnyas0faoobat.cloudfront.net")
+    public String domainUrl;
+
+    /**
      * The DynamoDB listing table name.
      */
     @ConfigProperty(name = "LISTING_TABLE_NAME")
@@ -60,6 +66,7 @@ public class ConfigService {
     public String getDynamoDbListingTableName() {
         return dynamoDbListingTableName;
     }
+    public String getDomainUrl() { return domainUrl; }
 
     public String getDynamoDbUserListingsIndexName() {
         return dynamoDbUserListingsIndexName;
