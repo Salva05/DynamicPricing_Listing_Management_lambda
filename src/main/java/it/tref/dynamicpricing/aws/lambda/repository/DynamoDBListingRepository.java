@@ -110,13 +110,28 @@ public class DynamoDBListingRepository implements ListingRepository {
                 "#attributes", "attributes"
         );
         Map<String, AttributeValue> exprAttrValues = new HashMap<>();
-        exprAttrValues.put(":name", AttributeValue.builder().s(listing.getName()).build()); // Name binding
+        exprAttrValues.put(":name", AttributeValue.builder().s(listing.getName()).build());
+
+        // Convert attributes to a DynamoDB map
         Map<String, AttributeValue> attributesMap = listing.getAttributes().entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        e -> AttributeValue.builder().s(e.getValue().toString()).build()
+                        e -> {
+                            Object value = e.getValue();
+                            if (value instanceof List) {
+                                @SuppressWarnings("unchecked")
+                                List<Object> list = (List<Object>) value;
+                                return AttributeValue.builder()
+                                        .l(list.stream()
+                                                .map(item -> AttributeValue.builder().s(item.toString()).build())
+                                                .collect(Collectors.toList()))
+                                        .build();
+                            } else {
+                                return AttributeValue.builder().s(value.toString()).build();
+                            }
+                        }
                 ));
-        exprAttrValues.put(":attributes", AttributeValue.builder().m(attributesMap).build()); // Attributes binding
+        exprAttrValues.put(":attributes", AttributeValue.builder().m(attributesMap).build());
 
         UpdateItemRequest request = UpdateItemRequest.builder()
                 .tableName(configService.getDynamoDbListingTableName())
