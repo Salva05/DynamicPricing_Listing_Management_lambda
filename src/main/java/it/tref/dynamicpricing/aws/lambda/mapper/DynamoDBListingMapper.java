@@ -6,7 +6,9 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Mapper class for converting between {@link Listing} objects and DynamoDB item maps.
@@ -50,7 +52,18 @@ public class DynamoDBListingMapper {
             Map<String, AttributeValue> attributesMap = new HashMap<>();
             listing.getAttributes().forEach((k, v) -> {
                 if (v != null) {
-                    attributesMap.put(k, AttributeValue.builder().s(v.toString()).build());
+                    if (v instanceof List) {
+                        @SuppressWarnings("unchecked")
+                        List<Object> list = (List<Object>) v;
+                        // Convert each item to an AttributeValue (as a string)
+                        attributesMap.put(k, AttributeValue.builder()
+                                .l(list.stream()
+                                        .map(item_ -> AttributeValue.builder().s(item_.toString()).build())
+                                        .collect(java.util.stream.Collectors.toList()))
+                                .build());
+                    } else {
+                        attributesMap.put(k, AttributeValue.builder().s(v.toString()).build());
+                    }
                 }
             });
             item.put("attributes", AttributeValue.builder().m(attributesMap).build());
@@ -112,7 +125,13 @@ public class DynamoDBListingMapper {
         if (item.containsKey("attributes") && item.get("attributes").m() != null) {
             Map<String, AttributeValue> attributesMap = item.get("attributes").m();
             attributesMap.forEach((k, v) -> {
-                if (v.s() != null) {
+                if (v.l() != null && !v.l().isEmpty()) {
+                    // Convert list of AttributeValues to a List of strings
+                    listing.getAttributes().put(k, v.l().stream()
+                            .map(AttributeValue::s)
+                            .filter(Objects::nonNull)
+                            .collect(java.util.stream.Collectors.toList()));
+                } else if (v.s() != null) {
                     listing.getAttributes().put(k, v.s());
                 }
             });
