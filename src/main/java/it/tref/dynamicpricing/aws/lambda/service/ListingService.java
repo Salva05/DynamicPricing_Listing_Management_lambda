@@ -70,12 +70,17 @@ public class ListingService {
     }
 
     /**
-     * Updates an existing listing using a partial update approach.
+     * Partially updates an existing listing and resets its inference state.
+     * <p>
+     * This method updates the listing's name and attributes if provided, then resets the
+     * 'completed' flag to false and clears the prediction field. Finally, it triggers an SQS
+     * message to re-run AI inference.
+     * </p>
      *
      * @param listingId the identifier of the listing to update.
      * @param request   the DTO containing the update data (fields are optional).
      * @param userId    the user identifier.
-     * @throws IllegalArgumentException if validation fails or the listing is not found.
+     * @throws IllegalArgumentException if the listing is not found.
      */
     public void updateListing(String listingId, UpdateListingRequest request, String userId) {
 
@@ -92,8 +97,19 @@ public class ListingService {
             existingListing.setAttributes(request.getAttributes());
         }
 
+        // Reset prediction state
+        existingListing.setCompleted(false);
+        existingListing.setPrediction(new HashMap<>());
+
         listingRepository.update(existingListing);
         logger.info("Updated listing with ID: {} for user: {}", listingId, userId);
+
+        // Trigger the SQS message to re-run AI inference
+        sqsProducerService.sendListingToQueue(new ListingSqsMessage(
+                existingListing.getListingId(),
+                existingListing.getUserId(),
+                ListingSqsMessage.convertAttributes(existingListing.getAttributes())
+        ));
     }
 
     /**

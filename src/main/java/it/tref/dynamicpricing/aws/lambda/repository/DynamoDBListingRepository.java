@@ -104,7 +104,7 @@ public class DynamoDBListingRepository implements ListingRepository {
     @Override
     public void update(Listing listing) {
         Map<String, AttributeValue> key = buildCompositeKey(listing.getListingId(), listing.getUserId());
-        String updateExpression = "SET #name = :name, #attributes = :attributes";
+        String updateExpression = "SET #name = :name, #attributes = :attributes, completed = :completed";
         Map<String, String> exprAttrNames = Map.of(
                 "#name", "name",
                 "#attributes", "attributes"
@@ -132,6 +132,7 @@ public class DynamoDBListingRepository implements ListingRepository {
                         }
                 ));
         exprAttrValues.put(":attributes", AttributeValue.builder().m(attributesMap).build());
+        exprAttrValues.put(":completed", AttributeValue.builder().bool(listing.isCompleted()).build());
 
         UpdateItemRequest request = UpdateItemRequest.builder()
                 .tableName(configService.getDynamoDbListingTableName())
