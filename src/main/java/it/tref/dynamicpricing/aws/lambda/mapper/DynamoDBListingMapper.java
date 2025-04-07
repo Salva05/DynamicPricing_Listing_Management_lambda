@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Mapper class for converting between {@link Listing} objects and DynamoDB item maps.
@@ -70,24 +71,19 @@ public class DynamoDBListingMapper {
         }
 
         if (listing.getPrediction() != null) {
-            Map<String, Object> predictionObj = (Map<String, Object>) listing.getPrediction();
+            @SuppressWarnings("unchecked")
+            Map<String, List<Double>> predictionObj = (Map<String, List<Double>>) listing.getPrediction();
             Map<String, AttributeValue> predictionMap = new HashMap<>();
-            predictionObj.forEach((k, v) -> {
-                if (v instanceof Map) {
-                    Map<String, Object> innerMap = (Map<String, Object>) v;
-                    Map<String, AttributeValue> innerAttrMap = new HashMap<>();
-                    innerMap.forEach((innerKey, innerVal) -> {
-                        if (innerVal != null) {
-                            innerAttrMap.put(innerKey, AttributeValue.builder().s(innerVal.toString()).build());
-                        }
-                    });
-                    predictionMap.put(k, AttributeValue.builder().m(innerAttrMap).build());
-                } else if (v != null) {
-                    predictionMap.put(k, AttributeValue.builder().s(v.toString()).build());
-                }
+            predictionObj.forEach((key, list) -> {
+                // Convert each Double in the list to an AttributeValue number (as string)
+                List<AttributeValue> attrList = list.stream()
+                        .map(num -> AttributeValue.builder().n(Double.toString(num)).build())
+                        .collect(Collectors.toList());
+                predictionMap.put(key, AttributeValue.builder().l(attrList).build());
             });
             item.put("prediction", AttributeValue.builder().m(predictionMap).build());
         }
+
 
         return item;
     }
@@ -139,19 +135,14 @@ public class DynamoDBListingMapper {
 
         if (item.containsKey("prediction") && item.get("prediction").m() != null) {
             Map<String, AttributeValue> predictionAttrMap = item.get("prediction").m();
-            Map<String, Object> prediction = new HashMap<>();
+            Map<String, List<Double>> prediction = new HashMap<>();
             predictionAttrMap.forEach((key, attrVal) -> {
-                if (attrVal.m() != null) {
-                    Map<String, AttributeValue> innerMap = attrVal.m();
-                    Map<String, Object> innerPrediction = new HashMap<>();
-                    innerMap.forEach((innerKey, innerAttrVal) -> {
-                        if (innerAttrVal.s() != null) {
-                            innerPrediction.put(innerKey, innerAttrVal.s());
-                        }
-                    });
-                    prediction.put(key, innerPrediction);
-                } else if (attrVal.s() != null) {
-                    prediction.put(key, attrVal.s());
+                // Expect attrVal to be a list of numbers stored as strings
+                if (attrVal.l() != null && !attrVal.l().isEmpty()) {
+                    List<Double> values = attrVal.l().stream()
+                            .map(av -> Double.valueOf(av.n()))
+                            .collect(Collectors.toList());
+                    prediction.put(key, values);
                 }
             });
             listing.setPrediction(prediction);

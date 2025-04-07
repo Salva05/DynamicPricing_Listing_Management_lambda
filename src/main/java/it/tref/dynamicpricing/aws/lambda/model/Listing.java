@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotEmpty;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -67,7 +68,7 @@ public class Listing {
      * Model's prediction over the listing.
      */
     @JsonProperty("prediction")
-    private Object prediction;
+    private Map<String, List<Double>> prediction;
 
     /**
      * Default constructor that sets the creation timestamp.
@@ -214,7 +215,7 @@ public class Listing {
      *
      * @param prediction the prediction value.
      */
-    public void setPrediction(Object prediction) {
+    public void setPrediction(Map<String, List<Double>> prediction) {
         this.prediction = prediction;
     }
 
